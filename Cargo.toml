@@ -1,0 +1,22 @@
+[package]
+name = "oscal_types"
+version = "0.0.1"
+edition = "2021"
+authors = ["David Skyberg <davidskyberg+oscal@gmail.com"]
+description = "OSCAL primitive type lib in Rust"
+keywords = ["rust", "oscal"]
+repository = "https://github.com/swanky-oscal/oscal_types"
+license = "MIT OR Apache 2.0"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde", "alloc", "now", "serde"] }
+fluent-uri = "0.2.0-alpha.2"
+semver = { version = "1.0.18", features = ["serde"] }
+serde = { version = "1.0.171", features = ["derive"] }
+serde-xml-rs = "0.6.0"
+serde_json = "1.0.103"
+serde_with = { version = "3.0.0", features = ["chrono"] }
+thiserror = "1.0.43"
+uuid = { version = "1.4.0", features = ["v4", "v5", "serde"] }
+validator = { version = "0.16.1", features = ["derive"] }
+void = "1.0.2"
