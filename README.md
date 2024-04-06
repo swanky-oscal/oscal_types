@@ -1,5 +1,5 @@
 # Cargo Types
-Cargo type primatives for Rust
+Cargo data types for Rust
 
 ## URI
 URIDataType and URIReferenceDatatype leverage [fluent-uri](https://docs.rs/fluent_uri) for validation.

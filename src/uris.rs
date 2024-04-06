@@ -1,6 +1,6 @@
 use fluent_uri::Uri;
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use std::{ops::Deref, str::FromStr};
 
 use crate::{Base, Error, Validate};
 
@@ -19,6 +19,13 @@ impl Base for URIDatatype {
 
     fn ref_type() -> String {
         String::from("str")
+    }
+}
+
+impl Deref for URIDatatype {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -59,6 +66,13 @@ impl Base for URIReferenceDatatype {
 
     fn ref_type() -> String {
         String::from("str")
+    }
+}
+
+impl Deref for URIReferenceDatatype {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

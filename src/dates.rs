@@ -62,6 +62,22 @@ impl ToString for DateDatatype {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct DateTimeDatatype(String);
+
+impl DateTimeDatatype {
+    /// Create a new date.
+    /// The date is created from the current UTC date.
+    pub fn new() -> Self {
+        Self(Local::now().to_rfc3339())
+    }
+
+    pub fn to_rfc2822(&self) -> String {
+        match DateTime::parse_from_rfc3339(&self.0) {
+            Ok(dt) => dt.to_rfc2822(),
+            Err(_) => "".to_string(),
+        }
+    }
+}
+
 impl Base for DateTimeDatatype {
     fn base_type() -> String {
         String::from("str")
@@ -85,6 +101,19 @@ impl FromStr for DateTimeDatatype {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let result = s.parse::<NaiveDateTime>()?;
         Ok(Self(result.to_string()))
+    }
+}
+
+impl Default for DateTimeDatatype {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Deref for DateTimeDatatype {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
