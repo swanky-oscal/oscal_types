@@ -1,121 +1,117 @@
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
-use crate::{Base, Error};
+use crate::{Base, Error, Metaschema, StringType, Validate};
 
 use std::str::FromStr;
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(transparent)]
-pub struct StringDatatype(String);
-
-impl Base for StringDatatype {
-    fn base_type() -> String {
-        String::from("String")
-    }
-
-    fn ref_type() -> String {
-        String::from("str")
-    }
-}
-
-impl StringDatatype {
-    fn new_if_valid(value: &str) -> Result<Self, Error> {
-        Ok(Self(value.trim().to_string()))
-    }
-}
-
-impl Deref for StringDatatype {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl TryFrom<&str> for StringDatatype {
-    type Error = Error;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new_if_valid(value)
-    }
-}
-
-impl FromStr for StringDatatype {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::new_if_valid(s)
-    }
-}
+use crate::string_impl;
 
 /// A string representing arbitrary binary data encoded using the Base 64 algorithm as defined by RFC4648
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct Base64Datatype(String);
-
-impl Base for Base64Datatype {
-    fn base_type() -> String {
-        String::from("String")
-    }
-
-    fn ref_type() -> String {
-        String::from("str")
+impl Validate for Base64Datatype {
+    fn validate(_value: &str) -> Result<(), Error> {
+        Ok(())
     }
 }
 
-impl Deref for Base64Datatype {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl TryFrom<&str> for Base64Datatype {
-    type Error = Error;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(Self(value.to_string()))
-    }
-}
-
-impl FromStr for Base64Datatype {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from(s)
-    }
-}
+string_impl!(
+    Base64Datatype,
+    description = "Binary data encoded using the Base 64 encoding algorithm as defined by RFC4648.",
+    pattern = r#"^[0-9A-Za-z+\/]+={0,2}$"#,
+    content_encoding = "base64"
+);
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(transparent)]
+pub struct StringDatatype(String);
+impl Validate for StringDatatype {
+    fn validate(value: &str) -> Result<(), Error> {
+        match value.trim() == value {
+            true => Ok(()),
+            false => Err(Error::StringParse(
+                "Trailing and leading whitespace is not allowed".to_string(),
+            )),
+        }
+    }
+}
+
+string_impl!(
+    StringDatatype,
+    description = "A non-empty string with leading and trailing whitespace disallowed. Whitespace is: U+9, U+10, U+32 or [ \n\t]+",
+    pattern =  "^\\S(.*\\S)?$",
+    content_encoding = "string"
+);
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(transparent)]
 pub struct EmailAddressDatatype(String);
-
-impl Base for EmailAddressDatatype {
-    fn base_type() -> String {
-        String::from("String")
-    }
-
-    fn ref_type() -> String {
-        String::from("str")
+impl Validate for EmailAddressDatatype {
+    fn validate(_value: &str) -> Result<(), Error> {
+        Ok(())
     }
 }
 
-impl Deref for EmailAddressDatatype {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        &self.0
+string_impl!(
+    EmailAddressDatatype,
+    description = "An email address string formatted according to RFC 6531.",
+    pattern = "^.+@.+$",
+    content_encoding = "email"
+);
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct HostnameDatatype(String);
+impl Validate for HostnameDatatype {
+    fn validate(_value: &str) -> Result<(), Error> {
+        Ok(())
     }
 }
 
-impl TryFrom<&str> for EmailAddressDatatype {
-    type Error = Error;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(Self(String::from(value)))
+string_impl!(
+    HostnameDatatype,
+    description = "An internationalized Internet host name string formatted according to section 2.3.2.3 of RFC5890.",
+    format = "idn-hostname"
+);
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct IPV4AddressDatatype(String);
+impl Validate for IPV4AddressDatatype {
+    fn validate(value: &str) -> Result<(), Error> {
+        match value.parse::<std::net::Ipv4Addr>() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(Error::AddressParse(e)),
+        }
     }
 }
 
-impl FromStr for EmailAddressDatatype {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from(s)
+string_impl!(
+    IPV4AddressDatatype,
+    description = "An Internet Protocol version 4 address represented using dotted-quad syntax as defined in section 3.2 of RFC2673.",
+    format = "ipv4",
+    pattern = "^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){{3}}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$"
+);
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct IPV6AddressDatatype(String);
+impl Validate for IPV6AddressDatatype {
+    fn validate(value: &str) -> Result<(), Error> {
+        match value.parse::<std::net::Ipv6Addr>() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(Error::AddressParse(e)),
+        }
     }
 }
+
+string_impl!(
+    IPV6AddressDatatype,
+    description = "An Internet Protocol version 6 address represented using the syntax defined in section 2.2 of RFC3513.",
+    format = "ipv6",
+    pattern = "^(([0-9a-fA-F]{{1,4}}:){{7,7}}[0-9a-fA-F]{{1,4}}|([0-9a-fA-F]{{1,4}}:){{1,7}}:|([0-9a-fA-F]{{1,4}}:){{1,6}}:[0-9a-fA-F]{{1,4}}|([0-9a-fA-F]{{1,4}}:){{1,5}}(:[0-9a-fA-F]{{1,4}}){{1,2}}|([0-9a-fA-F]{{1,4}}:){{1,4}}(:[0-9a-fA-F]{{1,4}}){{1,3}}|([0-9a-fA-F]{{1,4}}:){{1,3}}(:[0-9a-fA-F]{{1,4}}){{1,4}}|([0-9a-fA-F]{{1,4}}:){{1,2}}(:[0-9a-fA-F]{{1,4}}){{1,5}}|[0-9a-fA-F]{{1,4}}:((:[0-9a-fA-F]{{1,4}}){{1,6}})|:((:[0-9a-fA-F]{{1,4}}){{1,7}}|:)|[fF][eE]80:(:[0-9a-fA-F]{{0,4}}){{0,4}}%[0-9a-zA-Z]{{1,}}|::([fF]{{4}}(:0{{1,4}}){{0,1}}:){{0,1}}((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]).){{3,3}}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])|([0-9a-fA-F]{{1,4}}:){{1,4}}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]).){{3,3}}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))$"
+);
 
 #[cfg(test)]
 mod tests {

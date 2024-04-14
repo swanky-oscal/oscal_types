@@ -1,5 +1,20 @@
-//! UUID data type.  Supported by [uuid].
-//!
+/// All OSCAL documents use a UUID [RFC4122](https://www.rfc-editor.org/rfc/rfc4122.html) to provide a stable and unique way to
+/// refer to a given instance of an OSCAL document. UUIDs are generated when the
+/// OSCAL document is created or revised.
+///
+/// While not strictly part of the metadata section of an OSCAL document, this
+/// document identifier is part of the OSCAL document's core metadata.
+///
+/// OSCAL supports two types of UUIDs:
+///
+/// - [Version 4](https://www.rfc-editor.org/rfc/rfc4122.html#section-4.4): A randomly or pseudo-randomly generated UUID.
+/// - [Version 5](https://www.rfc-editor.org/rfc/rfc4122.html#section-4.3): A name-based UUID based on SHA-1 hashing.
+///
+/// The OSCAL program recommends using a version 4 (random) UUID as the document
+/// identifier, which is highly resistant to [collisions](https://en.wikipedia.org/wiki/Universally_unique_identifier#Collisions).
+///
+/// This implementation of OSCAL UUID uses the [uuid] crate
+///
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 use uuid::Uuid;

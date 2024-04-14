@@ -3,11 +3,22 @@ use std::ops::Deref;
 
 use crate::{Base, Error};
 
-use super::{DecimalType, NumberType};
+use super::{DecimalType, Metaschema, NumberType};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct DecimalDatatype(f64);
+
+impl DecimalType for DecimalDatatype {}
+
+impl Metaschema for DecimalDatatype {
+    fn _type() -> Option<&'static str> {
+        Some("number")
+    }
+    fn description() -> Option<&'static str> {
+        Some( "A real number expressed using a whole and optional fractional part separated by a period.")
+    }
+}
 
 impl Base for DecimalDatatype {
     fn base_type() -> String {
@@ -36,8 +47,6 @@ impl TryFrom<&f64> for DecimalDatatype {
         Ok(Self(*value))
     }
 }
-
-impl DecimalType for DecimalDatatype {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(transparent)]
